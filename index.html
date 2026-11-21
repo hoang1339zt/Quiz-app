@@ -1,0 +1,2456 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luyện Trắc Nghiệm Nguyên Văn — v2.0 (Google Sheets Sync)</title>
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --success-border: #86efac;
+      --danger: #b91c1c;
+      --danger-bg: #fee2e2;
+      --danger-border: #fca5a5;
+      --warning: #b45309;
+      --warning-bg: #fef3c7;
+      --warning-border: #fcd34d;
+      --mark-bg: #fde047;
+      --mark-text: #1e293b;
+      --shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b1120;
+      --surface: #111827;
+      --surface-2: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --primary-soft: rgba(59, 130, 246, 0.16);
+      --success: #4ade80;
+      --success-bg: rgba(22, 163, 74, 0.18);
+      --success-border: #166534;
+      --danger: #f87171;
+      --danger-bg: rgba(220, 38, 38, 0.18);
+      --danger-border: #991b1b;
+      --warning: #fbbf24;
+      --warning-bg: rgba(217, 119, 6, 0.2);
+      --warning-border: #92400e;
+      --mark-bg: #ca8a04;
+      --mark-text: #ffffff;
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.04rem;
+    }
+
+    .brand-badge {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.3px;
+    }
+
+    .sync-meta {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .storage-notice {
+      background: var(--warning-bg);
+      border-bottom: 1px solid var(--warning-border);
+      color: var(--text);
+      font-size: 0.82rem;
+      padding: 8px 20px;
+      text-align: center;
+      display: none;
+    }
+
+    .storage-notice.show { display: block; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      padding: 8px 13px;
+      border-radius: var(--radius-sm);
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--surface-2);
+      border-color: var(--text-muted);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+      border-color: var(--success);
+    }
+
+    .btn-success:hover:not(:disabled) {
+      filter: brightness(1.08);
+    }
+
+    .btn-danger-outline {
+      color: var(--danger);
+      border-color: var(--danger-border);
+      background: transparent;
+    }
+
+    .btn-danger-outline:hover:not(:disabled) {
+      background: var(--danger-bg);
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.8rem;
+    }
+
+    .tabs-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      white-space: nowrap;
+      position: relative;
+      bottom: -1px;
+    }
+
+    .tab-item:hover {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .tab-item.active {
+      background: var(--bg);
+      color: var(--primary);
+      border-color: var(--border);
+      border-bottom: 1px solid var(--bg);
+    }
+
+    .tab-count {
+      font-size: 0.74rem;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .tab-item.active .tab-count {
+      background: var(--primary-soft);
+      border-color: transparent;
+      color: var(--primary);
+    }
+
+    .tab-icon-btn {
+      background: none;
+      border: none;
+      color: inherit;
+      opacity: 0.65;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      line-height: 1;
+    }
+
+    .tab-icon-btn:hover {
+      opacity: 1;
+      background: rgba(128, 128, 128, 0.18);
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .empty-state {
+      max-width: 720px;
+      margin: 44px auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 28px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .empty-icon { font-size: 2.8rem; margin-bottom: 12px; }
+    .empty-state h1 { font-size: 1.4rem; margin-bottom: 10px; }
+    .empty-state p { color: var(--text-muted); margin-bottom: 24px; font-size: 0.95rem; }
+    .empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-label {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .stat-value { font-size: 1.35rem; font-weight: 800; margin-top: 2px; }
+    .stat-value.success { color: var(--success); }
+    .stat-value.danger { color: var(--danger); }
+    .stat-value.warning { color: var(--warning); }
+    .stat-value.primary { color: var(--primary); }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .toolbar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .mode-btn.active { background: var(--primary); color: #fff; }
+
+    .filter-group { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .filter-pill {
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-muted);
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .filter-pill.active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .exam-banner {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .exam-banner.submitted {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+    }
+
+    .question-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      scroll-margin-top: 84px;
+    }
+
+    .question-card.state-correct { border-left: 5px solid var(--success); }
+    .question-card.state-wrong { border-left: 5px solid var(--danger); }
+
+    .q-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .q-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .q-num { font-weight: 800; color: var(--primary); font-size: 0.96rem; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .badge-source {
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .badge-correct {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: var(--success-border);
+    }
+
+    .badge-wrong {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-color: var(--danger-border);
+    }
+
+    .q-actions { display: flex; align-items: center; gap: 6px; }
+
+    .bookmark-btn.active {
+      background: var(--warning-bg);
+      border-color: var(--warning-border);
+      color: var(--warning);
+    }
+
+    .q-stem {
+      font-size: 1.02rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+    }
+
+    .options-list { display: flex; flex-direction: column; gap: 9px; }
+
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      cursor: pointer;
+      transition: all 0.14s ease;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .option-btn:disabled { cursor: default; }
+
+    .opt-key {
+      flex-shrink: 0;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 6px;
+      border-radius: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.84rem;
+      color: var(--text);
+    }
+
+    .opt-text { flex: 1; white-space: pre-wrap; padding-top: 2px; }
+
+    .option-btn.selected { border-color: var(--primary); background: var(--primary-soft); }
+    .option-btn.selected .opt-key { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .option-btn.is-correct { border-color: var(--success); background: var(--success-bg); }
+    .option-btn.is-correct .opt-key { background: var(--success); color: #fff; border-color: var(--success); }
+    .option-btn.is-wrong { border-color: var(--danger); background: var(--danger-bg); }
+    .option-btn.is-wrong .opt-key { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+    .multi-check-bar { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+
+    .explanation-box {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .exp-section-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .quote-block {
+      background: var(--surface);
+      border-left: 4px solid var(--primary);
+      padding: 12px 14px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 0.94rem;
+      white-space: pre-wrap;
+    }
+
+    .quote-block mark {
+      background: var(--mark-bg);
+      color: var(--mark-text);
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .distractor-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+
+    .distractor-item {
+      font-size: 0.9rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
+
+    .distractor-key { font-weight: 800; color: var(--danger); margin-right: 6px; }
+
+    .source-foot {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 76px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .nav-cell {
+      position: relative;
+      height: 36px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-cell:hover { border-color: var(--primary); }
+    .nav-cell.answered { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+    .nav-cell.correct { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+    .nav-cell.wrong { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+
+    .nav-cell.bookmarked::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--warning);
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 12px;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+    .dot-none { background: var(--surface-2); border: 1px solid var(--border); }
+    .dot-correct { background: var(--success); }
+    .dot-wrong { background: var(--danger); }
+    .dot-mark { background: var(--warning); border-radius: 50%; }
+
+    .tool-stack { display: flex; flex-direction: column; gap: 8px; }
+    .tool-stack .btn { width: 100%; justify-content: flex-start; }
+    .deck-meta { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.58);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h2 { font-size: 1.08rem; }
+
+    .modal-body {
+      padding: 18px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .field-label { display: block; font-size: 0.84rem; font-weight: 700; margin-bottom: 6px; }
+    .help-text { font-size: 0.8rem; color: var(--text-muted); line-height: 1.45; }
+
+    .input, .textarea {
+      width: 100%;
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .textarea {
+      min-height: 190px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+      resize: vertical;
+    }
+
+    .radio-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .radio-card {
+      border: 1.5px solid var(--border);
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.86rem;
+    }
+
+    .radio-card.disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+    }
+
+    .alert-error {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.86rem;
+      display: none;
+    }
+
+    .alert-error.show { display: block; }
+
+    .alert-info {
+      background: var(--primary-soft);
+      color: var(--text);
+      border: 1px solid var(--primary);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.83rem;
+      line-height: 1.5;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      z-index: 200;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 11px 16px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      max-width: 400px;
+    }
+
+    [data-theme="dark"] .toast { background: #f8fafc; color: #0f172a; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .empty-filter {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 36px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 960px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
+      .workspace { grid-template-columns: 1fr; }
+      .sidebar { position: static; order: -1; }
+      .nav-grid { grid-template-columns: repeat(8, 1fr); max-height: 160px; }
+    }
+
+    @media (max-width: 600px) {
+      .topbar { padding: 10px 14px; }
+      .container { padding: 14px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .radio-row { grid-template-columns: 1fr; }
+      .nav-grid { grid-template-columns: repeat(6, 1fr); }
+      .question-card { padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span>Luyện Trắc Nghiệm Nguyên Văn</span>
+      <span class="brand-badge">v2.0 · SHEETS SYNC</span>
+      <span class="sync-meta" id="syncMetaLabel"></span>
+    </div>
+    <div class="top-actions">
+      <button class="btn btn-success" id="btnSyncNow" title="Tải câu hỏi mới từ Google Sheets (giữ nguyên tiến độ cũ)">🔄 Đồng bộ Sheets</button>
+      <button class="btn" id="btnSheetSettings" title="Cài đặt đường link CSV Google Sheets">⚙ Link Sheet</button>
+      <button class="btn btn-primary" id="btnOpenImport">+ Nhập JSON</button>
+      <button class="btn" id="btnExportBackup" title="Xuất toàn bộ các Tab và tiến độ ra tệp JSON">Sao lưu</button>
+      <button class="btn" id="btnRestoreBackup" title="Khôi phục kho đề từ tệp sao lưu JSON">Khôi phục</button>
+      <input type="file" id="restoreFileInput" accept=".json,application/json" hidden />
+      <button class="btn" id="btnThemeToggle" title="Đổi giao diện Sáng / Tối">Sáng</button>
+    </div>
+  </header>
+
+  <div class="storage-notice" id="storageNotice">
+    Trình duyệt đang mở ở chế độ trang tạm (không tự lưu khi tải lại). Hãy đẩy file này lên GitHub Pages / Netlify Drop để lưu vĩnh viễn trên iPhone, hoặc bấm <strong>Sao lưu</strong> trước khi đóng tab.
+  </div>
+
+  <nav class="tabs-bar" id="tabsBar" aria-label="Danh sách bộ đề"></nav>
+  <main class="container" id="mainContainer"></main>
+
+  <!-- Google Sheets Sync Settings Modal -->
+  <div class="modal-backdrop" id="sheetModal" role="dialog" aria-modal="true" aria-labelledby="sheetModalTitle">
+    <div class="modal" style="max-width:600px;">
+      <div class="modal-header">
+        <h2 id="sheetModalTitle">Cài đặt đồng bộ Google Sheets (CSV)</h2>
+        <button class="btn btn-sm" id="btnCloseSheet">Đóng</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert-error" id="sheetError"></div>
+
+        <div class="alert-info">
+          <strong>Cách lấy link:</strong> Mở Google Sheets → <strong>Tệp</strong> → <strong>Chia sẻ</strong> → <strong>Xuất bản lên web</strong> → chọn trang tính <code>Kho_De</code> và định dạng <strong>.csv</strong> → bấm Xuất bản rồi dán link vào ô dưới đây.
+        </div>
+
+        <div>
+          <label class="field-label" for="sheetUrlInput">Đường link CSV của trang tính <code>Kho_De</code></label>
+          <input class="input" type="url" id="sheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=...&single=true&output=csv" />
+          <p class="help-text" style="margin-top:6px;">
+            Khi đồng bộ, Web App tự chia Tab theo cột <code>deck_title</code>, thêm câu mới và <strong>giữ nguyên 100% đáp án đã làm & câu đã đánh dấu</strong>.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger-outline" id="btnClearSheetUrl" style="margin-right:auto;">Xóa link</button>
+        <button class="btn" id="btnCancelSheet">Hủy</button>
+        <button class="btn btn-success" id="btnSaveAndSync">Lưu & Đồng bộ ngay</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import JSON Modal -->
+  <div class="modal-backdrop" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="importModalTitle">Nhập đợt câu hỏi trắc nghiệm (JSON)</h2>
+        <button class="btn btn-sm" id="btnCloseImport">Đóng</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert-error" id="importError"></div>
+
+        <div>
+          <label class="field-label" for="jsonInput">Dán khối JSON từ Gemini (tự động nhận diện nhiều cấu trúc & cả tệp sao lưu)</label>
+          <textarea class="textarea" id="jsonInput" placeholder='{"deck_title":"...","questions":[...]}'></textarea>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <div>
+            <button class="btn btn-sm" id="btnPickJsonFile">Chọn tệp .json từ máy</button>
+            <input type="file" id="importFileInput" accept=".json,application/json,text/plain" hidden />
+          </div>
+          <button class="btn btn-sm" id="btnClearJsonInput">Xóa khung dán</button>
+        </div>
+
+        <div>
+          <span class="field-label">Chọn cách nạp đề</span>
+          <div class="radio-row">
+            <label class="radio-card" id="radioNewTabCard">
+              <input type="radio" name="importMode" value="new" checked />
+              <div>
+                <strong>Tạo Tab mới</strong>
+                <div style="font-size:0.78rem; color:var(--text-muted);">Tách thành một bộ đề riêng biệt</div>
+              </div>
+            </label>
+            <label class="radio-card" id="radioAppendCard">
+              <input type="radio" name="importMode" value="append" />
+              <div>
+                <strong>Nối tiếp vào Tab đang mở</strong>
+                <div style="font-size:0.78rem; color:var(--text-muted);" id="appendTargetHint">Gộp thêm câu vào cuối Tab hiện tại</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div id="newTabNameWrap">
+          <label class="field-label" for="newTabNameInput">Tên Tab mới (để trống để tự lấy theo tên đề)</label>
+          <input class="input" type="text" id="newTabNameInput" placeholder="Ví dụ: Bài 8 - Cơ sở Quân y" />
+        </div>
+
+        <label class="checkbox-row" id="skipDupWrap" style="display:none;">
+          <input type="checkbox" id="chkSkipDuplicates" checked />
+          <span>Tự động bỏ qua các câu hỏi bị trùng nội dung câu dẫn đã có trong Tab</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="btnCancelImport">Hủy</button>
+        <button class="btn btn-primary" id="btnConfirmImport">Nạp bộ câu hỏi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename Tab Modal -->
+  <div class="modal-backdrop" id="renameModal" role="dialog" aria-modal="true" aria-labelledby="renameModalTitle">
+    <div class="modal" style="max-width:440px;">
+      <div class="modal-header">
+        <h2 id="renameModalTitle">Đổi tên Tab bộ đề</h2>
+        <button class="btn btn-sm" id="btnCloseRename">Đóng</button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label" for="renameTabInput">Tên mới</label>
+        <input class="input" type="text" id="renameTabInput" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="btnCancelRename">Hủy</button>
+        <button class="btn btn-primary" id="btnConfirmRename">Lưu tên mới</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const STORAGE_KEY = "verbatim_notebook_quiz_app_v2";
+      const LEGACY_STORAGE_KEY = "verbatim_notebook_quiz_app_v1";
+
+      let storageAvailable = false;
+      (function detectStorage() {
+        try {
+          const testKey = "__quiz_storage_test__";
+          localStorage.setItem(testKey, "1");
+          localStorage.removeItem(testKey);
+          storageAvailable = true;
+        } catch (_) {
+          storageAvailable = false;
+        }
+      })();
+
+      let state = {
+        theme: "light",
+        sheetCsvUrl: "",
+        lastSyncAt: "",
+        activeTabId: null,
+        tabs: []
+      };
+
+      let renamingTabId = null;
+      let toastTimer = null;
+      let isSyncing = false;
+
+      // ---------- Utilities ----------
+      function uid(prefix) {
+        return prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+      }
+
+      function escapeHtml(str) {
+        if (str === null || str === undefined) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function normalizeKey(k) {
+        return String(k || "").trim().toUpperCase();
+      }
+
+      function normalizeStem(s) {
+        return String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
+      }
+
+      function normalizeDeckName(s) {
+        return String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
+      }
+
+      function parseBool(v) {
+        if (typeof v === "boolean") return v;
+        const s = String(v || "").trim().toLowerCase();
+        return s === "true" || s === "1" || s === "yes" || s === "có";
+      }
+
+      function highlightVerbatimQuote(quote, phrase) {
+        const rawQuote = String(quote || "");
+        const rawPhrase = String(phrase || "").trim();
+        if (!rawQuote) return "<em>Không có trích dẫn nguyên văn đi kèm.</em>";
+        if (!rawPhrase) return escapeHtml(rawQuote);
+
+        let idx = rawQuote.indexOf(rawPhrase);
+        if (idx === -1) idx = rawQuote.toLowerCase().indexOf(rawPhrase.toLowerCase());
+        if (idx === -1) return escapeHtml(rawQuote);
+
+        return escapeHtml(rawQuote.slice(0, idx)) +
+          "<mark>" + escapeHtml(rawQuote.slice(idx, idx + rawPhrase.length)) + "</mark>" +
+          escapeHtml(rawQuote.slice(idx + rawPhrase.length));
+      }
+
+      function showToast(msg) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 3400);
+      }
+
+      function copyToClipboard(text, successMsg) {
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(
+            () => showToast(successMsg),
+            () => fallbackCopy(text, successMsg)
+          );
+        } else {
+          fallbackCopy(text, successMsg);
+        }
+      }
+
+      function fallbackCopy(text, successMsg) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(successMsg);
+        } catch (_) {
+          showToast("Không thể tự động sao chép trên trình duyệt này.");
+        }
+        document.body.removeChild(ta);
+      }
+
+      function shuffleArray(arr) {
+        const copy = arr.slice();
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = copy[i];
+          copy[i] = copy[j];
+          copy[j] = tmp;
+        }
+        return copy;
+      }
+
+      // ---------- Persistence ----------
+      function saveState() {
+        if (!storageAvailable) return;
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (_) {
+          showToast("Bộ nhớ trình duyệt đã đầy! Hãy bấm 'Sao lưu' để giữ dữ liệu.");
+        }
+      }
+
+      function loadState() {
+        if (!storageAvailable) {
+          document.getElementById("storageNotice").classList.add("show");
+          return;
+        }
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.tabs)) {
+            state.theme = parsed.theme === "dark" ? "dark" : "light";
+            state.sheetCsvUrl = typeof parsed.sheetCsvUrl === "string" ? parsed.sheetCsvUrl : "";
+            state.lastSyncAt = typeof parsed.lastSyncAt === "string" ? parsed.lastSyncAt : "";
+            state.tabs = parsed.tabs;
+            state.activeTabId = parsed.activeTabId || (parsed.tabs[0] ? parsed.tabs[0].id : null);
+          }
+        } catch (_) {}
+      }
+
+      function applyTheme() {
+        document.documentElement.setAttribute("data-theme", state.theme);
+        document.getElementById("btnThemeToggle").textContent = state.theme === "dark" ? "Tối" : "Sáng";
+      }
+
+      function updateSyncMetaLabel() {
+        const el = document.getElementById("syncMetaLabel");
+        if (state.lastSyncAt) {
+          el.textContent = "· Đồng bộ: " + state.lastSyncAt;
+        } else if (state.sheetCsvUrl) {
+          el.textContent = "· Đã gắn Link Sheet";
+        } else {
+          el.textContent = "";
+        }
+      }
+
+      // ---------- RFC 4180 CSV Parser ----------
+      function parseCsv(text) {
+        const cleaned = String(text || "").replace(/^\uFEFF/, "");
+        const rows = [];
+        let row = [];
+        let field = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < cleaned.length; i++) {
+          const ch = cleaned[i];
+          const next = cleaned[i + 1];
+
+          if (inQuotes) {
+            if (ch === '"' && next === '"') {
+              field += '"';
+              i++;
+            } else if (ch === '"') {
+              inQuotes = false;
+            } else {
+              field += ch;
+            }
+          } else {
+            if (ch === '"') {
+              inQuotes = true;
+            } else if (ch === ",") {
+              row.push(field);
+              field = "";
+            } else if (ch === "\r" && next === "\n") {
+              row.push(field);
+              rows.push(row);
+              row = [];
+              field = "";
+              i++;
+            } else if (ch === "\n" || ch === "\r") {
+              row.push(field);
+              rows.push(row);
+              row = [];
+              field = "";
+            } else {
+              field += ch;
+            }
+          }
+        }
+        if (field.length > 0 || row.length > 0) {
+          row.push(field);
+          rows.push(row);
+        }
+        return rows.filter(r => r.some(cell => String(cell).trim() !== ""));
+      }
+
+      // ---------- Multi-Format Field Parsers ----------
+      function safeJsonParse(val) {
+        if (typeof val !== "string") return val;
+        const s = val.trim();
+        if (!s) return null;
+        try { return JSON.parse(s); } catch (_) { return s; }
+      }
+
+      function pickFirst(obj, keys) {
+        if (!obj || typeof obj !== "object") return undefined;
+        for (const k of keys) {
+          if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "") {
+            return obj[k];
+          }
+        }
+        return undefined;
+      }
+
+      function parseOptionsField(rawInput) {
+        let rawOpts = safeJsonParse(rawInput);
+        if (typeof rawOpts === "string") {
+          const lines = rawOpts.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+          if (lines.length >= 2) rawOpts = lines;
+        }
+        if (Array.isArray(rawOpts)) {
+          return rawOpts.map((opt, oIdx) => {
+            if (typeof opt === "string") {
+              const trimmed = opt.trim();
+              const m = trimmed.match(/^([A-Za-z0-9]{1,3})\s*[\.\)\-–—:]\s*([\s\S]*)$/);
+              if (m) return { key: m[1].toUpperCase(), text: m[2].trim() };
+              return { key: String.fromCharCode(65 + oIdx), text: trimmed };
+            }
+            if (opt && typeof opt === "object") {
+              const k = opt.key ?? opt.label ?? opt.id ?? opt.option ?? String.fromCharCode(65 + oIdx);
+              const t = opt.text ?? opt.content ?? opt.value ?? opt.noi_dung ?? "";
+              return { key: String(k).trim(), text: String(t).trim() };
+            }
+            return { key: String.fromCharCode(65 + oIdx), text: String(opt ?? "") };
+          });
+        }
+        if (rawOpts && typeof rawOpts === "object") {
+          return Object.entries(rawOpts).map(([k, v]) => ({
+            key: String(k).trim().toUpperCase(),
+            text: String(v ?? "").trim()
+          }));
+        }
+        return [];
+      }
+
+      function resolveSingleAnswerKey(val, options) {
+        if (typeof val === "number" && options[val]) return options[val].key;
+        const s = String(val ?? "").trim();
+        if (!s) return "";
+        const upper = s.toUpperCase();
+        const direct = options.find(o => o.key.toUpperCase() === upper);
+        if (direct) return direct.key;
+
+        const m = s.match(/^([A-Za-z0-9]{1,3})\s*[\.\)\-–—:]/);
+        if (m) {
+          const k = m[1].toUpperCase();
+          const found = options.find(o => o.key.toUpperCase() === k);
+          return found ? found.key : k;
+        }
+
+        const byText = options.find(o => o.text.trim().toLowerCase() === s.toLowerCase());
+        if (byText) return byText.key;
+        return upper;
+      }
+
+      function parseCorrectKeysField(rawInput, options) {
+        const raw = safeJsonParse(rawInput);
+        if (raw === undefined || raw === null) return [];
+        if (Array.isArray(raw)) {
+          return raw.map(v => resolveSingleAnswerKey(v, options)).filter(Boolean);
+        }
+        if (typeof raw === "number") {
+          const k = resolveSingleAnswerKey(raw, options);
+          return k ? [k] : [];
+        }
+        const str = String(raw).trim();
+        if (!str) return [];
+        if (/^[A-Za-z0-9]{1,3}(\s*[,;&/]\s*[A-Za-z0-9]{1,3})+$/.test(str)) {
+          return str.split(/\s*[,;&/]\s*/).map(v => resolveSingleAnswerKey(v, options)).filter(Boolean);
+        }
+        const single = resolveSingleAnswerKey(str, options);
+        return single ? [single] : [];
+      }
+
+      function parseDistractorsField(rawInput) {
+        const raw = safeJsonParse(rawInput);
+        if (!raw) return [];
+        if (Array.isArray(raw)) {
+          return raw.map(d => {
+            if (typeof d === "string") {
+              const m = d.trim().match(/^([A-Za-z0-9]{1,3})\s*[\.\)\-–—:]\s*([\s\S]*)$/);
+              return m ? { key: m[1].toUpperCase(), difference: m[2].trim() } : { key: "•", difference: d.trim() };
+            }
+            if (d && typeof d === "object") {
+              return {
+                key: String(d.key ?? d.option ?? d.label ?? "•"),
+                difference: String(d.difference ?? d.reason ?? d.explanation ?? d.text ?? "")
+              };
+            }
+            return null;
+          }).filter(d => d && d.difference);
+        }
+        if (typeof raw === "object") {
+          return Object.entries(raw).map(([k, v]) => ({
+            key: String(k),
+            difference: String(v ?? "")
+          })).filter(d => d.difference);
+        }
+        if (typeof raw === "string" && raw.trim()) {
+          return [{ key: "•", difference: raw.trim() }];
+        }
+        return [];
+      }
+
+      // ---------- Google Sheets Sync Engine ----------
+      function normalizeSheetUrl(inputUrl) {
+        const url = String(inputUrl || "").trim();
+        if (!url) throw new Error("Bạn chưa nhập đường link Google Sheets.");
+        if (!/^https?:\/\//i.test(url)) throw new Error("Đường link phải bắt đầu bằng https://");
+
+        // If user pasted a standard /edit URL, try converting to /export?format=csv
+        const editMatch = url.match(/https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)\/edit.*?(?:gid=(\d+))?/);
+        if (editMatch && !url.includes("/d/e/")) {
+          const docId = editMatch[1];
+          const gid = editMatch[2] || "0";
+          return "https://docs.google.com/spreadsheets/d/" + docId + "/export?format=csv&gid=" + gid;
+        }
+        return url;
+      }
+
+      function rowsToDecks(rows) {
+        if (!rows || rows.length < 2) {
+          throw new Error("Trang tính chưa có dữ liệu câu hỏi (chỉ có dòng tiêu đề hoặc đang trống).");
+        }
+
+        const headers = rows[0].map(h => String(h || "").trim().toLowerCase());
+        const colIdx = (aliases) => {
+          for (const a of aliases) {
+            const i = headers.indexOf(a);
+            if (i !== -1) return i;
+          }
+          return -1;
+        };
+
+        const idxId = colIdx(["id", "stt", "ma_cau"]);
+        const idxDeck = colIdx(["deck_title", "bai_hoc", "title", "tab", "chu_de"]);
+        const idxSource = colIdx(["source", "nguon", "reference"]);
+        const idxType = colIdx(["question_type", "type", "loai_cau"]);
+        const idxStem = colIdx(["stem", "question", "cau_hoi", "de_bai"]);
+        const idxOpts = colIdx(["options_json", "options", "phuong_an"]);
+        const idxLock = colIdx(["lock_option_order", "lock_order"]);
+        const idxCorrect = colIdx(["correct_keys", "correct_answer", "answer", "dap_an"]);
+        const idxQuote = colIdx(["verbatim_quote", "quote", "trich_dan"]);
+        const idxHighlight = colIdx(["highlight_phrase", "highlight"]);
+        const idxDistractors = colIdx(["distractor_comparisons_json", "distractor_comparisons", "distractors", "doi_chieu"]);
+
+        if (idxStem === -1 || idxOpts === -1 || idxCorrect === -1) {
+          throw new Error("Thiếu cột bắt buộc trong dòng tiêu đề (cần có: stem, options_json, correct_keys). Hãy kiểm tra lại xem bạn đã xuất bản đúng trang tính Kho_De chưa.");
+        }
+
+        const decksMap = new Map();
+        let skippedRows = 0;
+
+        for (let r = 1; r < rows.length; r++) {
+          const cols = rows[r];
+          const get = (i) => (i >= 0 && i < cols.length ? String(cols[i] || "").trim() : "");
+
+          const stem = get(idxStem);
+          if (!stem) continue;
+
+          const options = parseOptionsField(get(idxOpts));
+          const correctKeys = parseCorrectKeysField(get(idxCorrect), options);
+          if (options.length < 2 || correctKeys.length === 0) {
+            skippedRows++;
+            continue;
+          }
+
+          const deckTitle = get(idxDeck) || "Kho đề Google Sheets";
+          const deckKey = normalizeDeckName(deckTitle);
+          const rawType = get(idxType).toLowerCase();
+          const validTypes = ["single_choice", "multiple_choice", "true_false"];
+          const qType = validTypes.includes(rawType)
+            ? rawType
+            : (correctKeys.length > 1 ? "multiple_choice" : "single_choice");
+
+          const qObj = {
+            uid: uid("q"),
+            id: get(idxId) || ("Q" + r),
+            source: get(idxSource) || "Google Sheets",
+            question_type: qType,
+            stem: stem,
+            options: options,
+            lock_option_order: parseBool(get(idxLock)),
+            correct_keys: correctKeys,
+            verbatim_quote: get(idxQuote),
+            highlight_phrase: get(idxHighlight),
+            distractor_comparisons: parseDistractorsField(get(idxDistractors)),
+            userSelected: [],
+            checked: false,
+            bookmarked: false
+          };
+
+          if (!decksMap.has(deckKey)) {
+            decksMap.set(deckKey, { title: deckTitle, questions: [], sources: new Set() });
+          }
+          const entry = decksMap.get(deckKey);
+          entry.questions.push(qObj);
+          if (qObj.source) entry.sources.add(qObj.source);
+        }
+
+        if (decksMap.size === 0) {
+          throw new Error("Không đọc được câu hỏi hợp lệ nào từ tệp CSV (kiểm tra lại cột options_json và correct_keys).");
+        }
+
+        return { decks: Array.from(decksMap.values()), skippedRows };
+      }
+
+      async function syncFromGoogleSheets(urlOverride) {
+        if (isSyncing) return;
+        const targetRawUrl = urlOverride !== undefined ? urlOverride : state.sheetCsvUrl;
+        if (!targetRawUrl) {
+          openSheetModal();
+          return;
+        }
+
+        const btn = document.getElementById("btnSyncNow");
+        const prevBtnText = btn.textContent;
+        isSyncing = true;
+        btn.disabled = true;
+        btn.textContent = "⏳ Đang đồng bộ...";
+
+        try {
+          const baseUrl = normalizeSheetUrl(targetRawUrl);
+          const sep = baseUrl.includes("?") ? "&" : "?";
+          const fetchUrl = baseUrl + sep + "_ts=" + Date.now();
+
+          const res = await fetch(fetchUrl, { method: "GET", cache: "no-store" });
+          if (!res.ok) {
+            throw new Error("Máy chủ Google trả về lỗi HTTP " + res.status + ". Hãy đảm bảo bạn đã bấm Xuất bản lên web dạng CSV.");
+          }
+          const csvText = await res.text();
+          if (/^\s*<!doctype html/i.test(csvText) || /^\s*<html/i.test(csvText)) {
+            throw new Error("Đường link đang trả về trang web HTML thay vì CSV. Hãy chọn định dạng .csv khi Xuất bản lên web.");
+          }
+
+          const rows = parseCsv(csvText);
+          const { decks, skippedRows } = rowsToDecks(rows);
+
+          let newTabsCount = 0;
+          let addedQuestionsCount = 0;
+          let updatedQuestionsCount = 0;
+
+          for (const incoming of decks) {
+            const normTitle = normalizeDeckName(incoming.title);
+            let existingTab = state.tabs.find(t => normalizeDeckName(t.title) === normTitle);
+
+            if (!existingTab) {
+              existingTab = {
+                id: uid("tab"),
+                title: incoming.title,
+                templateName: "Mẫu câu hỏi (Google Sheets)",
+                sourcesUsed: Array.from(incoming.sources),
+                createdAt: new Date().toISOString().slice(0, 10),
+                mode: "study",
+                examSubmitted: false,
+                filter: "all",
+                questions: incoming.questions
+              };
+              state.tabs.push(existingTab);
+              newTabsCount++;
+              addedQuestionsCount += incoming.questions.length;
+            } else {
+              // Build progress lookup maps from existing tab to preserve user work 100%
+              const byStem = new Map();
+              const byId = new Map();
+              for (const oldQ of existingTab.questions) {
+                byStem.set(normalizeStem(oldQ.stem), oldQ);
+                if (oldQ.id) byId.set(String(oldQ.id).trim().toLowerCase(), oldQ);
+              }
+
+              const matchedOldUids = new Set();
+              const mergedQuestions = [];
+
+              for (const incQ of incoming.questions) {
+                const stemKey = normalizeStem(incQ.stem);
+                const idKey = String(incQ.id || "").trim().toLowerCase();
+                const oldMatch = byStem.get(stemKey) || (idKey ? byId.get(idKey) : null);
+
+                if (oldMatch) {
+                  matchedOldUids.add(oldMatch.uid);
+                  // Keep old progress & uid, refresh text/quote from Sheet
+                  mergedQuestions.push({
+                    ...incQ,
+                    uid: oldMatch.uid,
+                    userSelected: Array.isArray(oldMatch.userSelected) ? oldMatch.userSelected : [],
+                    checked: Boolean(oldMatch.checked),
+                    bookmarked: Boolean(oldMatch.bookmarked)
+                  });
+                  updatedQuestionsCount++;
+                } else {
+                  mergedQuestions.push(incQ);
+                  addedQuestionsCount++;
+                }
+              }
+
+              // Keep any local-only questions (e.g. manually imported) that weren't in Sheet
+              for (const oldQ of existingTab.questions) {
+                if (!matchedOldUids.has(oldQ.uid)) {
+                  mergedQuestions.push(oldQ);
+                }
+              }
+
+              existingTab.questions = mergedQuestions;
+              const srcSet = new Set(existingTab.sourcesUsed || []);
+              incoming.sources.forEach(s => srcSet.add(s));
+              existingTab.sourcesUsed = Array.from(srcSet);
+              if (existingTab.mode === "exam" && existingTab.examSubmitted && addedQuestionsCount > 0) {
+                existingTab.examSubmitted = false;
+              }
+            }
+          }
+
+          if (!state.activeTabId && state.tabs.length > 0) {
+            state.activeTabId = state.tabs[0].id;
+          }
+
+          state.sheetCsvUrl = targetRawUrl.trim();
+          const now = new Date();
+          state.lastSyncAt = now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) + " " +
+            now.toLocaleDateString("vi-VN");
+
+          saveState();
+          render();
+          closeSheetModal();
+
+          let msg = "Đồng bộ xong: +" + addedQuestionsCount + " câu mới";
+          if (newTabsCount > 0) msg += ", +" + newTabsCount + " Tab mới";
+          if (updatedQuestionsCount > 0) msg += " (giữ tiến độ " + updatedQuestionsCount + " câu cũ)";
+          if (skippedRows > 0) msg += ". Bỏ qua " + skippedRows + " dòng lỗi định dạng.";
+          showToast(msg);
+        } catch (err) {
+          const sheetErr = document.getElementById("sheetError");
+          const modalOpen = document.getElementById("sheetModal").classList.contains("open");
+          const errMsg = "Lỗi đồng bộ: " + err.message + (err.message === "Failed to fetch" ? " (Kiểm tra kết nối mạng hoặc đảm bảo đã Xuất bản lên web dạng CSV)." : "");
+          if (modalOpen) {
+            sheetErr.textContent = errMsg;
+            sheetErr.classList.add("show");
+          } else {
+            showToast(errMsg);
+          }
+        } finally {
+          isSyncing = false;
+          btn.disabled = false;
+          btn.textContent = prevBtnText;
+        }
+      }
+
+      // ---------- Manual JSON Import ----------
+      function extractJsonObject(rawText) {
+        const trimmed = String(rawText || "").trim();
+        if (!trimmed) throw new Error("Bạn chưa dán dữ liệu JSON.");
+        try { return JSON.parse(trimmed); } catch (_) {}
+
+        const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+        if (fenceMatch && fenceMatch[1]) {
+          return JSON.parse(fenceMatch[1].trim());
+        }
+        const firstObj = trimmed.indexOf("{");
+        const lastObj = trimmed.lastIndexOf("}");
+        if (firstObj !== -1 && lastObj > firstObj) {
+          return JSON.parse(trimmed.slice(firstObj, lastObj + 1));
+        }
+        throw new Error("Không tìm thấy dữ liệu JSON hợp lệ.");
+      }
+
+      function parseQuoteField(q) {
+        const raw = q.verbatim_quote ?? q.quote ?? q.verbatim ?? q.citation ?? q.evidence ?? q.explanation ?? q.trich_dan;
+        if (!raw) return "";
+        if (typeof raw === "string") return raw.trim();
+        if (typeof raw === "object") return String(raw.quote ?? raw.text ?? raw.content ?? JSON.stringify(raw));
+        return String(raw);
+      }
+
+      function normalizeDeckPayload(payload) {
+        let rootObj = {};
+        let rawQuestions = null;
+        if (Array.isArray(payload)) rawQuestions = payload;
+        else if (payload && typeof payload === "object") {
+          rootObj = payload;
+          rawQuestions = payload.questions || payload.mcqs || payload.quiz || payload.items || payload.data;
+        }
+        if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) {
+          throw new Error("Không tìm thấy danh sách câu hỏi (mảng 'questions') trong JSON.");
+        }
+
+        const defaultSource = Array.isArray(rootObj.sources_used) && rootObj.sources_used[0]
+          ? String(rootObj.sources_used[0])
+          : "Nguồn Notebook";
+
+        const normalizedQuestions = rawQuestions.map((q, idx) => {
+          const stemVal = pickFirst(q, ["stem", "question", "question_text", "prompt", "content", "cau_hoi"]);
+          if (!stemVal) throw new Error("Câu hỏi thứ " + (idx + 1) + " thiếu nội dung câu dẫn.");
+
+          const options = parseOptionsField(q.options ?? q.options_json ?? q.choices ?? q.phuong_an);
+          if (options.length < 2) throw new Error("Câu hỏi thứ " + (idx + 1) + " phải có ít nhất 2 phương án.");
+
+          const correctKeys = parseCorrectKeysField(
+            q.correct_keys ?? q.correct_answers ?? q.correct_answer ?? q.answer ?? q.dap_an,
+            options
+          );
+          if (correctKeys.length === 0) throw new Error("Câu hỏi thứ " + (idx + 1) + " thiếu đáp án đúng.");
+
+          const validTypes = ["single_choice", "multiple_choice", "true_false"];
+          const qType = validTypes.includes(q.question_type)
+            ? q.question_type
+            : (correctKeys.length > 1 ? "multiple_choice" : "single_choice");
+
+          return {
+            uid: uid("q"),
+            id: q.id !== undefined ? String(q.id) : "Q" + (idx + 1),
+            source: String(pickFirst(q, ["source", "location", "nguon"]) || defaultSource),
+            question_type: qType,
+            stem: String(stemVal).trim(),
+            options: options,
+            lock_option_order: parseBool(q.lock_option_order),
+            correct_keys: correctKeys,
+            verbatim_quote: parseQuoteField(q),
+            highlight_phrase: String(pickFirst(q, ["highlight_phrase", "highlight"]) || ""),
+            distractor_comparisons: parseDistractorsField(q.distractor_comparisons ?? q.distractor_comparisons_json ?? q.distractors),
+            userSelected: [],
+            checked: false,
+            bookmarked: false
+          };
+        });
+
+        const sources = Array.isArray(rootObj.sources_used)
+          ? rootObj.sources_used.map(String)
+          : Array.from(new Set(normalizedQuestions.map(q => q.source)));
+
+        return {
+          deck_title: String(pickFirst(rootObj, ["deck_title", "title", "topic", "lesson"]) || "Bộ đề mới").trim(),
+          template_name: rootObj.template_name ? String(rootObj.template_name) : "Mẫu câu hỏi",
+          sources_used: sources,
+          created_at: rootObj.created_at ? String(rootObj.created_at) : new Date().toISOString().slice(0, 10),
+          questions: normalizedQuestions
+        };
+      }
+
+      // ---------- Evaluation ----------
+      function getActiveTab() {
+        return state.tabs.find(t => t.id === state.activeTabId) || null;
+      }
+
+      function isQuestionGraded(tab, q) {
+        return tab.mode === "exam" ? Boolean(tab.examSubmitted) : Boolean(q.checked);
+      }
+
+      function isQuestionAnswered(q) {
+        return Array.isArray(q.userSelected) && q.userSelected.length > 0;
+      }
+
+      function isQuestionCorrect(q) {
+        if (!isQuestionAnswered(q)) return false;
+        const selected = Array.from(new Set(q.userSelected.map(normalizeKey))).sort();
+        const correct = Array.from(new Set(q.correct_keys.map(normalizeKey))).sort();
+        if (selected.length !== correct.length) return false;
+        return selected.every((val, i) => val === correct[i]);
+      }
+
+      function computeTabStats(tab) {
+        let total = tab.questions.length;
+        let answered = 0, correct = 0, wrong = 0, bookmarked = 0;
+        for (const q of tab.questions) {
+          if (q.bookmarked) bookmarked++;
+          const hasAns = isQuestionAnswered(q);
+          if (hasAns) answered++;
+          if (isQuestionGraded(tab, q)) {
+            if (isQuestionCorrect(q)) correct++;
+            else if (hasAns || (tab.mode === "exam" && tab.examSubmitted)) wrong++;
+          }
+        }
+        const gradedTotal = correct + wrong;
+        const pct = gradedTotal > 0 ? Math.round((correct / gradedTotal) * 100) : 0;
+        return { total, answered, correct, wrong, bookmarked, pct };
+      }
+
+      function getQuestionTypeLabel(type) {
+        if (type === "multiple_choice") return "Chọn nhiều đáp án";
+        if (type === "true_false") return "Đúng / Sai";
+        return "Chọn 1 đáp án";
+      }
+
+      function loadSampleDeck() {
+        const sample = {
+          deck_title: "Bộ đề mẫu thử nghiệm",
+          questions: [{
+            id: "Q1",
+            source: "Tai_lieu_mau_Notebook.pdf",
+            question_type: "single_choice",
+            stem: "Khi đồng bộ từ trang tính Kho_De trên Google Sheets, Web App v2.0 phân chia các Tab bài học dựa trên cột nào?",
+            options: [
+              { key: "A", text: "Cột deck_title (tự động gom câu hỏi cùng bài vào 1 Tab và giữ nguyên tiến độ cũ)." },
+              { key: "B", text: "Cột source (mỗi tệp PDF tạo thành một Tab riêng)." },
+              { key: "C", text: "Cột id (tạo Tab mới sau mỗi 10 câu)." },
+              { key: "D", text: "Tất cả các phương án trên đều sai." }
+            ],
+            lock_option_order: true,
+            correct_keys: ["A"],
+            verbatim_quote: "Web App tự động đọc cột deck_title để chia thành từng Tab bài học riêng biệt và giữ nguyên 100% tiến độ làm bài cũ.",
+            highlight_phrase: "đọc cột deck_title để chia thành từng Tab bài học riêng biệt",
+            distractor_comparisons: [
+              { key: "B", difference: "Sai vì Web App dùng cột deck_title chứ không chia theo cột source." },
+              { key: "C", difference: "Sai vì cột id chỉ dùng để đánh mã thứ tự câu hỏi trong bài." },
+              { key: "D", difference: "Sai vì phương án A đúng với cơ chế đồng bộ." }
+            ]
+          }]
+        };
+        const deck = normalizeDeckPayload(sample);
+        const newTab = {
+          id: uid("tab"),
+          title: deck.deck_title,
+          templateName: deck.template_name,
+          sourcesUsed: deck.sources_used,
+          createdAt: deck.created_at,
+          mode: "study",
+          examSubmitted: false,
+          filter: "all",
+          questions: deck.questions
+        };
+        state.tabs.push(newTab);
+        state.activeTabId = newTab.id;
+        saveState();
+        render();
+        showToast("Đã nạp 1 câu mẫu thử nghiệm.");
+      }
+
+      // ---------- Render ----------
+      function renderTabs() {
+        const tabsBar = document.getElementById("tabsBar");
+        if (state.tabs.length === 0) {
+          tabsBar.style.display = "none";
+          tabsBar.innerHTML = "";
+          return;
+        }
+        tabsBar.style.display = "flex";
+        tabsBar.innerHTML = state.tabs.map(tab => {
+          const isActive = tab.id === state.activeTabId;
+          return `
+            <div class="tab-item ${isActive ? "active" : ""}" data-tab-id="${escapeHtml(tab.id)}" role="tab" aria-selected="${isActive}">
+              <span class="tab-title-text">${escapeHtml(tab.title)}</span>
+              <span class="tab-count">${tab.questions.length}</span>
+              <button class="tab-icon-btn" data-action="rename-tab" data-tab-id="${escapeHtml(tab.id)}" title="Đổi tên Tab">✎</button>
+              <button class="tab-icon-btn" data-action="delete-tab" data-tab-id="${escapeHtml(tab.id)}" title="Xóa Tab">✕</button>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderEmptyState() {
+        return `
+          <section class="empty-state">
+            <div class="empty-icon">🔄</div>
+            <h1>Trung tâm Luyện Trắc Nghiệm Nguyên Văn v2.0</h1>
+            <p>
+              Gắn đường link CSV của trang tính <strong>Kho_De</strong> từ Google Sheets để đồng bộ tự động 1 chạm mọi bài học từ Gemini Skill <code>mcqs-web</code> — hoặc nhập thủ công khối JSON như trước đây.
+            </p>
+            <div class="empty-actions">
+              <button class="btn btn-success" data-action="open-sheet-settings">⚙ Gắn Link Google Sheets & Đồng bộ</button>
+              <button class="btn btn-primary" data-action="open-import">+ Nhập JSON thủ công</button>
+              <button class="btn" data-action="load-sample">Nạp 1 câu mẫu thử nghiệm</button>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderQuestionCard(tab, q, index) {
+        const graded = isQuestionGraded(tab, q);
+        const answered = isQuestionAnswered(q);
+        const correct = graded ? isQuestionCorrect(q) : false;
+        const selectedSet = new Set(q.userSelected.map(normalizeKey));
+        const correctSet = new Set(q.correct_keys.map(normalizeKey));
+
+        let cardStateClass = "";
+        let statusBadge = "";
+        if (graded) {
+          if (correct) {
+            cardStateClass = "state-correct";
+            statusBadge = `<span class="badge badge-correct">✓ ĐÚNG</span>`;
+          } else {
+            cardStateClass = "state-wrong";
+            statusBadge = `<span class="badge badge-wrong">${answered ? "✕ SAI" : "✕ CHƯA CHỌN"}</span>`;
+          }
+        }
+
+        const optionsHtml = q.options.map(opt => {
+          const normKey = normalizeKey(opt.key);
+          const isSelected = selectedSet.has(normKey);
+          const isCorrectOpt = correctSet.has(normKey);
+          let cls = "option-btn";
+          if (graded) {
+            if (isCorrectOpt) cls += " is-correct";
+            else if (isSelected && !isCorrectOpt) cls += " is-wrong";
+          } else if (isSelected) {
+            cls += " selected";
+          }
+          return `
+            <button class="${cls}" data-action="select-option" data-qid="${escapeHtml(q.uid)}" data-key="${escapeHtml(opt.key)}" ${graded ? "disabled" : ""}>
+              <span class="opt-key">${escapeHtml(opt.key)}</span>
+              <span class="opt-text">${escapeHtml(opt.text)}</span>
+            </button>
+          `;
+        }).join("");
+
+        let multiBarHtml = "";
+        if (q.question_type === "multiple_choice" && tab.mode === "study" && !graded) {
+          multiBarHtml = `
+            <div class="multi-check-bar">
+              <button class="btn btn-primary btn-sm" data-action="check-multi" data-qid="${escapeHtml(q.uid)}" ${answered ? "" : "disabled"}>
+                Kiểm tra đáp án
+              </button>
+              <span style="font-size:0.8rem; color:var(--text-muted);">Chọn tất cả phương án đúng rồi bấm kiểm tra</span>
+            </div>
+          `;
+        }
+
+        let explanationHtml = "";
+        if (graded) {
+          const quoteHtml = highlightVerbatimQuote(q.verbatim_quote, q.highlight_phrase);
+          const distractorsHtml = q.distractor_comparisons && q.distractor_comparisons.length > 0
+            ? `
+              <div>
+                <div class="exp-section-title">Đối chiếu nguyên văn các phương án nhiễu</div>
+                <ul class="distractor-list">
+                  ${q.distractor_comparisons.map(d => `
+                    <li class="distractor-item">
+                      <span class="distractor-key">${escapeHtml(d.key)}:</span>${escapeHtml(d.difference)}
+                    </li>
+                  `).join("")}
+                </ul>
+              </div>
+            `
+            : "";
+
+          explanationHtml = `
+            <div class="explanation-box">
+              <div>
+                <div class="exp-section-title">Trích dẫn nguyên văn từ nguồn (Đáp án đúng: ${escapeHtml(q.correct_keys.join(", "))})</div>
+                <div class="quote-block">${quoteHtml}</div>
+              </div>
+              ${distractorsHtml}
+              <div class="source-foot">
+                <span><strong>Nguồn gốc:</strong> ${escapeHtml(q.source)}</span>
+                <span><strong>Mã câu:</strong> ${escapeHtml(q.id)}</span>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <article class="question-card ${cardStateClass}" id="card_${escapeHtml(q.uid)}">
+            <div class="q-header">
+              <div class="q-meta">
+                <span class="q-num">Câu ${index + 1}</span>
+                <span class="badge">${escapeHtml(getQuestionTypeLabel(q.question_type))}</span>
+                ${q.lock_option_order ? `<span class="badge">Khóa thứ tự ĐA</span>` : ""}
+                <span class="badge badge-source" title="${escapeHtml(q.source)}">${escapeHtml(q.source)}</span>
+                ${statusBadge}
+              </div>
+              <div class="q-actions">
+                <button class="btn btn-sm bookmark-btn ${q.bookmarked ? "active" : ""}" data-action="toggle-bookmark" data-qid="${escapeHtml(q.uid)}">
+                  ${q.bookmarked ? "★ Đã đánh dấu" : "☆ Đánh dấu"}
+                </button>
+                <button class="btn btn-sm" data-action="copy-deep-study" data-qid="${escapeHtml(q.uid)}">
+                  📋 Học sâu trên Gemini
+                </button>
+              </div>
+            </div>
+            <div class="q-stem">${escapeHtml(q.stem)}</div>
+            <div class="options-list">${optionsHtml}</div>
+            ${multiBarHtml}
+            ${explanationHtml}
+          </article>
+        `;
+      }
+
+      function renderWorkspace(tab) {
+        const stats = computeTabStats(tab);
+        const filteredEntries = tab.questions
+          .map((q, idx) => ({ q, idx }))
+          .filter(({ q }) => {
+            if (tab.filter === "unanswered") return !isQuestionAnswered(q);
+            if (tab.filter === "bookmarked") return q.bookmarked;
+            if (tab.filter === "wrong") return isQuestionGraded(tab, q) && !isQuestionCorrect(q);
+            return true;
+          });
+
+        let examBannerHtml = "";
+        if (tab.mode === "exam") {
+          examBannerHtml = !tab.examSubmitted
+            ? `
+              <div class="exam-banner">
+                <div><strong>Chế độ Thi thử:</strong> Đáp án và trích dẫn đang ẩn. (Đã chọn ${stats.answered}/${stats.total} câu)</div>
+                <button class="btn btn-success" data-action="submit-exam">Nộp bài & Chấm điểm</button>
+              </div>
+            `
+            : `
+              <div class="exam-banner submitted">
+                <div><strong>Đã nộp bài:</strong> Đúng <strong>${stats.correct}/${stats.total}</strong> câu (<strong>${Math.round((stats.correct / Math.max(1, stats.total)) * 100)}%</strong>).</div>
+                <button class="btn btn-sm" data-action="reset-tab">Thi lại từ đầu</button>
+              </div>
+            `;
+        }
+
+        const questionsHtml = filteredEntries.length > 0
+          ? filteredEntries.map(({ q, idx }) => renderQuestionCard(tab, q, idx)).join("")
+          : `<div class="empty-filter">Không có câu hỏi nào khớp với bộ lọc hiện tại.</div>`;
+
+        const navCellsHtml = tab.questions.map((q, idx) => {
+          const graded = isQuestionGraded(tab, q);
+          const answered = isQuestionAnswered(q);
+          let cls = "nav-cell";
+          if (graded) cls += isQuestionCorrect(q) ? " correct" : " wrong";
+          else if (answered) cls += " answered";
+          if (q.bookmarked) cls += " bookmarked";
+          return `<button class="${cls}" data-action="jump-question" data-qid="${escapeHtml(q.uid)}">${idx + 1}</button>`;
+        }).join("");
+
+        return `
+          <section class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Tổng số câu</div><div class="stat-value">${stats.total}</div></div>
+            <div class="stat-card"><div class="stat-label">Đã làm</div><div class="stat-value primary">${stats.answered}</div></div>
+            <div class="stat-card"><div class="stat-label">Số câu đúng</div><div class="stat-value success">${stats.correct}</div></div>
+            <div class="stat-card"><div class="stat-label">Số câu sai</div><div class="stat-value danger">${stats.wrong}</div></div>
+            <div class="stat-card"><div class="stat-label">Tỷ lệ đúng</div><div class="stat-value">${stats.pct}%</div></div>
+            <div class="stat-card"><div class="stat-label">Đã đánh dấu</div><div class="stat-value warning">${stats.bookmarked}</div></div>
+          </section>
+
+          <div class="workspace">
+            <div>
+              <div class="toolbar">
+                <div class="mode-switch">
+                  <button class="mode-btn ${tab.mode === "study" ? "active" : ""}" data-action="set-mode" data-mode="study">Vừa làm vừa học</button>
+                  <button class="mode-btn ${tab.mode === "exam" ? "active" : ""}" data-action="set-mode" data-mode="exam">Thi thử</button>
+                </div>
+                <div class="filter-group">
+                  <button class="filter-pill ${tab.filter === "all" ? "active" : ""}" data-action="set-filter" data-filter="all">Tất cả (${stats.total})</button>
+                  <button class="filter-pill ${tab.filter === "unanswered" ? "active" : ""}" data-action="set-filter" data-filter="unanswered">Chưa làm (${stats.total - stats.answered})</button>
+                  <button class="filter-pill ${tab.filter === "wrong" ? "active" : ""}" data-action="set-filter" data-filter="wrong">Làm sai (${stats.wrong})</button>
+                  <button class="filter-pill ${tab.filter === "bookmarked" ? "active" : ""}" data-action="set-filter" data-filter="bookmarked">Đã đánh dấu (${stats.bookmarked})</button>
+                </div>
+              </div>
+              ${examBannerHtml}
+              <section>${questionsHtml}</section>
+            </div>
+
+            <aside class="sidebar">
+              <div class="panel">
+                <div class="panel-title">
+                  <span>Điều hướng câu hỏi</span>
+                  <span style="font-size:0.78rem; color:var(--text-muted);">${stats.answered}/${stats.total}</span>
+                </div>
+                <div class="nav-grid">${navCellsHtml}</div>
+                <div class="legend">
+                  <div class="legend-item"><span class="dot dot-none"></span> Chưa làm</div>
+                  <div class="legend-item"><span class="dot dot-correct"></span> Làm đúng</div>
+                  <div class="legend-item"><span class="dot dot-wrong"></span> Làm sai</div>
+                  <div class="legend-item"><span class="dot dot-mark"></span> Đánh dấu</div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Công cụ ôn luyện</div>
+                <div class="tool-stack">
+                  <button class="btn btn-sm" data-action="shuffle-questions">🔀 Trộn thứ tự câu hỏi</button>
+                  <button class="btn btn-sm" data-action="shuffle-options">🎲 Trộn thứ tự đáp án</button>
+                  <button class="btn btn-sm" data-action="retry-wrong" ${stats.wrong === 0 ? "disabled" : ""}>↺ Làm lại riêng câu sai (${stats.wrong})</button>
+                  <button class="btn btn-sm btn-danger-outline" data-action="reset-tab">🗑 Làm lại toàn bộ Tab</button>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Thông tin bộ đề</div>
+                <div class="deck-meta">
+                  <div><strong>Mẫu áp dụng:</strong> ${escapeHtml(tab.templateName || "Mẫu câu hỏi")}</div>
+                  <div><strong>Ngày tạo:</strong> ${escapeHtml(tab.createdAt || "")}</div>
+                  <div><strong>Nguồn (${(tab.sourcesUsed || []).length}):</strong> ${escapeHtml((tab.sourcesUsed || []).join(", "))}</div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        `;
+      }
+
+      function render() {
+        applyTheme();
+        updateSyncMetaLabel();
+        renderTabs();
+        const main = document.getElementById("mainContainer");
+        const activeTab = getActiveTab();
+        main.innerHTML = activeTab ? renderWorkspace(activeTab) : renderEmptyState();
+      }
+
+      // ---------- Modals ----------
+      function openSheetModal() {
+        const modal = document.getElementById("sheetModal");
+        const err = document.getElementById("sheetError");
+        err.classList.remove("show");
+        err.textContent = "";
+        document.getElementById("sheetUrlInput").value = state.sheetCsvUrl || "";
+        modal.classList.add("open");
+        document.getElementById("sheetUrlInput").focus();
+      }
+
+      function closeSheetModal() {
+        document.getElementById("sheetModal").classList.remove("open");
+      }
+
+      function openImportModal() {
+        const modal = document.getElementById("importModal");
+        const errBox = document.getElementById("importError");
+        const activeTab = getActiveTab();
+        const appendRadio = document.querySelector('input[name="importMode"][value="append"]');
+        const newRadio = document.querySelector('input[name="importMode"][value="new"]');
+        const appendCard = document.getElementById("radioAppendCard");
+        const appendHint = document.getElementById("appendTargetHint");
+
+        errBox.classList.remove("show");
+        errBox.textContent = "";
+
+        if (!activeTab) {
+          appendRadio.disabled = true;
+          appendCard.classList.add("disabled");
+          appendHint.textContent = "Chưa có Tab nào đang mở";
+          newRadio.checked = true;
+        } else {
+          appendRadio.disabled = false;
+          appendCard.classList.remove("disabled");
+          appendHint.textContent = "Nối vào cuối Tab: " + activeTab.title;
+        }
+        syncImportModeFields();
+        modal.classList.add("open");
+        document.getElementById("jsonInput").focus();
+      }
+
+      function closeImportModal() {
+        document.getElementById("importModal").classList.remove("open");
+      }
+
+      function syncImportModeFields() {
+        const mode = document.querySelector('input[name="importMode"]:checked').value;
+        document.getElementById("newTabNameWrap").style.display = mode === "new" ? "block" : "none";
+        document.getElementById("skipDupWrap").style.display = mode === "append" ? "flex" : "none";
+      }
+
+      function restoreFromBackupObject(parsed) {
+        if (state.tabs.length > 0 && !confirm("Đây là tệp sao lưu toàn bộ kho đề. Khôi phục sẽ thay thế các Tab hiện tại. Tiếp tục?")) {
+          return false;
+        }
+        state = {
+          theme: parsed.state.theme === "dark" ? "dark" : "light",
+          sheetCsvUrl: typeof parsed.state.sheetCsvUrl === "string" ? parsed.state.sheetCsvUrl : state.sheetCsvUrl,
+          lastSyncAt: typeof parsed.state.lastSyncAt === "string" ? parsed.state.lastSyncAt : "",
+          tabs: parsed.state.tabs,
+          activeTabId: parsed.state.activeTabId || (parsed.state.tabs[0] ? parsed.state.tabs[0].id : null)
+        };
+        saveState();
+        render();
+        showToast("Đã khôi phục thành công " + state.tabs.length + " Tab bộ đề.");
+        return true;
+      }
+
+      function handleConfirmImport() {
+        const raw = document.getElementById("jsonInput").value;
+        const errBox = document.getElementById("importError");
+        errBox.classList.remove("show");
+
+        try {
+          const parsed = extractJsonObject(raw);
+
+          // Auto-detect backup file if user picked it inside Import JSON modal
+          if (parsed && parsed.backup_format && parsed.state && Array.isArray(parsed.state.tabs)) {
+            if (restoreFromBackupObject(parsed)) {
+              closeImportModal();
+              document.getElementById("jsonInput").value = "";
+            }
+            return;
+          }
+
+          const deck = normalizeDeckPayload(parsed);
+          const mode = document.querySelector('input[name="importMode"]:checked').value;
+
+          if (mode === "new" || !getActiveTab()) {
+            const customTitle = document.getElementById("newTabNameInput").value.trim();
+            const newTab = {
+              id: uid("tab"),
+              title: customTitle || deck.deck_title,
+              templateName: deck.template_name,
+              sourcesUsed: deck.sources_used,
+              createdAt: deck.created_at,
+              mode: "study",
+              examSubmitted: false,
+              filter: "all",
+              questions: deck.questions
+            };
+            state.tabs.push(newTab);
+            state.activeTabId = newTab.id;
+            saveState();
+            render();
+            closeImportModal();
+            document.getElementById("jsonInput").value = "";
+            document.getElementById("newTabNameInput").value = "";
+            showToast("Đã tạo Tab '" + newTab.title + "' với " + newTab.questions.length + " câu hỏi.");
+          } else {
+            const tab = getActiveTab();
+            const skipDup = document.getElementById("chkSkipDuplicates").checked;
+            const existingStems = new Set(tab.questions.map(q => normalizeStem(q.stem)));
+
+            let added = 0, skipped = 0;
+            for (const q of deck.questions) {
+              const norm = normalizeStem(q.stem);
+              if (skipDup && existingStems.has(norm)) { skipped++; continue; }
+              existingStems.add(norm);
+              tab.questions.push(q);
+              added++;
+            }
+
+            const sourceSet = new Set(tab.sourcesUsed || []);
+            for (const s of deck.sources_used) sourceSet.add(s);
+            tab.sourcesUsed = Array.from(sourceSet);
+            if (tab.mode === "exam" && tab.examSubmitted && added > 0) tab.examSubmitted = false;
+
+            saveState();
+            render();
+            closeImportModal();
+            document.getElementById("jsonInput").value = "";
+            showToast("Đã nối thêm " + added + " câu hỏi" + (skipped > 0 ? " (bỏ qua " + skipped + " câu trùng)." : "."));
+          }
+        } catch (err) {
+          errBox.textContent = "Lỗi nhập JSON: " + err.message;
+          errBox.classList.add("show");
+        }
+      }
+
+      function openRenameModal(tabId) {
+        const tab = state.tabs.find(t => t.id === tabId);
+        if (!tab) return;
+        renamingTabId = tabId;
+        const input = document.getElementById("renameTabInput");
+        input.value = tab.title;
+        document.getElementById("renameModal").classList.add("open");
+        input.focus();
+        input.select();
+      }
+
+      function closeRenameModal() {
+        renamingTabId = null;
+        document.getElementById("renameModal").classList.remove("open");
+      }
+
+      function confirmRenameTab() {
+        const tab = state.tabs.find(t => t.id === renamingTabId);
+        const newName = document.getElementById("renameTabInput").value.trim();
+        if (tab && newName) {
+          tab.title = newName;
+          saveState();
+          render();
+          showToast("Đã đổi tên Tab thành '" + newName + "'.");
+        }
+        closeRenameModal();
+      }
+
+      // ---------- Backup & Restore ----------
+      function exportBackup() {
+        if (state.tabs.length === 0 && !state.sheetCsvUrl) {
+          showToast("Chưa có bộ đề nào để sao lưu.");
+          return;
+        }
+        const backupPayload = {
+          backup_format: "verbatim_notebook_quiz_backup_v2",
+          exported_at: new Date().toISOString(),
+          state: state
+        };
+        const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "sao-luu-kho-de-v2-" + new Date().toISOString().slice(0, 10) + ".json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast("Đã tải tệp sao lưu toàn bộ kho đề (.json).");
+      }
+
+      function handleRestoreFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          try {
+            const parsed = JSON.parse(String(ev.target.result || ""));
+            if (!parsed || !parsed.state || !Array.isArray(parsed.state.tabs)) {
+              throw new Error("Tệp không đúng định dạng sao lưu của ứng dụng.");
+            }
+            restoreFromBackupObject(parsed);
+          } catch (err) {
+            showToast("Lỗi khôi phục: " + err.message);
+          }
+        };
+        reader.readAsText(file, "UTF-8");
+      }
+
+      // ---------- Events ----------
+      document.getElementById("btnSyncNow").addEventListener("click", () => syncFromGoogleSheets());
+      document.getElementById("btnSheetSettings").addEventListener("click", openSheetModal);
+      document.getElementById("btnCloseSheet").addEventListener("click", closeSheetModal);
+      document.getElementById("btnCancelSheet").addEventListener("click", closeSheetModal);
+      document.getElementById("btnSaveAndSync").addEventListener("click", () => {
+        const url = document.getElementById("sheetUrlInput").value.trim();
+        syncFromGoogleSheets(url);
+      });
+      document.getElementById("btnClearSheetUrl").addEventListener("click", () => {
+        state.sheetCsvUrl = "";
+        state.lastSyncAt = "";
+        saveState();
+        updateSyncMetaLabel();
+        document.getElementById("sheetUrlInput").value = "";
+        showToast("Đã xóa đường link Google Sheets.");
+      });
+
+      document.getElementById("btnOpenImport").addEventListener("click", openImportModal);
+      document.getElementById("btnCloseImport").addEventListener("click", closeImportModal);
+      document.getElementById("btnCancelImport").addEventListener("click", closeImportModal);
+      document.getElementById("btnConfirmImport").addEventListener("click", handleConfirmImport);
+      document.getElementById("btnClearJsonInput").addEventListener("click", () => {
+        document.getElementById("jsonInput").value = "";
+        document.getElementById("importError").classList.remove("show");
+      });
+
+      document.querySelectorAll('input[name="importMode"]').forEach(r => r.addEventListener("change", syncImportModeFields));
+
+      document.getElementById("btnPickJsonFile").addEventListener("click", () => document.getElementById("importFileInput").click());
+      document.getElementById("importFileInput").addEventListener("change", function () {
+        const file = this.files && this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          document.getElementById("jsonInput").value = String(e.target.result || "");
+          showToast("Đã đọc tệp '" + file.name + "'. Hãy bấm Nạp bộ câu hỏi.");
+        };
+        reader.readAsText(file, "UTF-8");
+        this.value = "";
+      });
+
+      document.getElementById("btnExportBackup").addEventListener("click", exportBackup);
+      document.getElementById("btnRestoreBackup").addEventListener("click", () => document.getElementById("restoreFileInput").click());
+      document.getElementById("restoreFileInput").addEventListener("change", function () {
+        handleRestoreFile(this.files && this.files[0]);
+        this.value = "";
+      });
+
+      document.getElementById("btnThemeToggle").addEventListener("click", () => {
+        state.theme = state.theme === "dark" ? "light" : "dark";
+        saveState();
+        applyTheme();
+      });
+
+      document.getElementById("btnCloseRename").addEventListener("click", closeRenameModal);
+      document.getElementById("btnCancelRename").addEventListener("click", closeRenameModal);
+      document.getElementById("btnConfirmRename").addEventListener("click", confirmRenameTab);
+      document.getElementById("renameTabInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") confirmRenameTab();
+      });
+
+      ["sheetModal", "importModal", "renameModal"].forEach(id => {
+        document.getElementById(id).addEventListener("click", e => {
+          if (e.target.id === id) document.getElementById(id).classList.remove("open");
+        });
+      });
+
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape") { closeSheetModal(); closeImportModal(); closeRenameModal(); }
+      });
+
+      document.getElementById("tabsBar").addEventListener("click", e => {
+        const actionBtn = e.target.closest("[data-action]");
+        if (actionBtn) {
+          e.stopPropagation();
+          const action = actionBtn.dataset.action;
+          const tabId = actionBtn.dataset.tabId;
+          if (action === "rename-tab") openRenameModal(tabId);
+          else if (action === "delete-tab") {
+            const tab = state.tabs.find(t => t.id === tabId);
+            if (!tab) return;
+            if (!confirm("Xóa Tab '" + tab.title + "' (" + tab.questions.length + " câu hỏi) khỏi trình duyệt?")) return;
+            state.tabs = state.tabs.filter(t => t.id !== tabId);
+            if (state.activeTabId === tabId) state.activeTabId = state.tabs[0] ? state.tabs[0].id : null;
+            saveState();
+            render();
+            showToast("Đã xóa Tab '" + tab.title + "'.");
+          }
+          return;
+        }
+        const tabEl = e.target.closest(".tab-item");
+        if (tabEl) {
+          state.activeTabId = tabEl.dataset.tabId;
+          saveState();
+          render();
+        }
+      });
+
+      document.getElementById("mainContainer").addEventListener("click", e => {
+        const btn = e.target.closest("[data-action]");
+        if (!btn) return;
+        const action = btn.dataset.action;
+
+        if (action === "open-sheet-settings") { openSheetModal(); return; }
+        if (action === "open-import") { openImportModal(); return; }
+        if (action === "load-sample") { loadSampleDeck(); return; }
+
+        const tab = getActiveTab();
+        if (!tab) return;
+
+        if (action === "set-mode") {
+          const newMode = btn.dataset.mode;
+          if (tab.mode !== newMode) {
+            tab.mode = newMode;
+            if (newMode === "exam") tab.examSubmitted = false;
+            else tab.questions.forEach(q => {
+              if (q.question_type !== "multiple_choice" && q.userSelected.length > 0) q.checked = true;
+            });
+            saveState();
+            render();
+          }
+          return;
+        }
+
+        if (action === "set-filter") { tab.filter = btn.dataset.filter; saveState(); render(); return; }
+
+        if (action === "submit-exam") {
+          const stats = computeTabStats(tab);
+          if (stats.answered < stats.total && !confirm("Bạn mới trả lời " + stats.answered + "/" + stats.total + " câu. Vẫn nộp bài ngay?")) return;
+          tab.examSubmitted = true;
+          tab.questions.forEach(q => { q.checked = true; });
+          saveState();
+          render();
+          showToast("Đã nộp bài! Toàn bộ đáp án và trích dẫn đã được mở.");
+          return;
+        }
+
+        if (action === "select-option") {
+          const q = tab.questions.find(item => item.uid === btn.dataset.qid);
+          if (!q || isQuestionGraded(tab, q)) return;
+          const key = btn.dataset.key;
+          if (q.question_type === "multiple_choice") {
+            const norm = normalizeKey(key);
+            const existsIdx = q.userSelected.findIndex(k => normalizeKey(k) === norm);
+            if (existsIdx >= 0) q.userSelected.splice(existsIdx, 1);
+            else q.userSelected.push(key);
+          } else {
+            q.userSelected = [key];
+            if (tab.mode === "study") q.checked = true;
+          }
+          saveState();
+          render();
+          return;
+        }
+
+        if (action === "check-multi") {
+          const q = tab.questions.find(item => item.uid === btn.dataset.qid);
+          if (!q || q.userSelected.length === 0) return;
+          q.checked = true;
+          saveState();
+          render();
+          return;
+        }
+
+        if (action === "toggle-bookmark") {
+          const q = tab.questions.find(item => item.uid === btn.dataset.qid);
+          if (!q) return;
+          q.bookmarked = !q.bookmarked;
+          saveState();
+          render();
+          return;
+        }
+
+        if (action === "copy-deep-study") {
+          const q = tab.questions.find(item => item.uid === btn.dataset.qid);
+          if (!q) return;
+          const optsStr = q.options.map(o => o.key + ". " + o.text).join("\n");
+          const promptText =
+            "Giải thích sâu và đối chiếu nguyên văn ngữ cảnh gốc trong Notebook cho câu hỏi sau (Nguồn: " + q.source + "):\n" +
+            q.stem + "\nCác phương án:\n" + optsStr + "\nĐáp án đúng ghi nhận: " + q.correct_keys.join(", ");
+          copyToClipboard(promptText, "Đã sao chép — Dán vào Gemini Chat");
+          return;
+        }
+
+        if (action === "jump-question") {
+          const qid = btn.dataset.qid;
+          let target = document.getElementById("card_" + qid);
+          if (!target) {
+            tab.filter = "all";
+            saveState();
+            render();
+            target = document.getElementById("card_" + qid);
+          }
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+
+        if (action === "shuffle-questions") {
+          tab.questions = shuffleArray(tab.questions);
+          saveState();
+          render();
+          showToast("Đã trộn ngẫu nhiên thứ tự câu hỏi.");
+          return;
+        }
+
+        if (action === "shuffle-options") {
+          let lockedCount = 0;
+          tab.questions.forEach(q => {
+            if (q.lock_option_order) lockedCount++;
+            else q.options = shuffleArray(q.options);
+          });
+          saveState();
+          render();
+          showToast("Đã trộn thứ tự đáp án" + (lockedCount > 0 ? " (giữ nguyên " + lockedCount + " câu khóa thứ tự)." : "."));
+          return;
+        }
+
+        if (action === "retry-wrong") {
+          let resetCount = 0;
+          tab.questions.forEach(q => {
+            if (isQuestionGraded(tab, q) && !isQuestionCorrect(q)) {
+              q.userSelected = [];
+              q.checked = false;
+              resetCount++;
+            }
+          });
+          if (resetCount > 0) {
+            if (tab.mode === "exam") tab.examSubmitted = false;
+            tab.filter = "unanswered";
+            saveState();
+            render();
+            showToast("Đã mở lại " + resetCount + " câu làm sai.");
+          }
+          return;
+        }
+
+        if (action === "reset-tab") {
+          if (!confirm("Xóa toàn bộ đáp án đã chọn trong Tab '" + tab.title + "' để làm lại từ đầu?")) return;
+          tab.questions.forEach(q => { q.userSelected = []; q.checked = false; });
+          tab.examSubmitted = false;
+          tab.filter = "all";
+          saveState();
+          render();
+          showToast("Đã đặt lại bài làm của Tab.");
+        }
+      });
+
+      loadState();
+      render();
+    })();
+  </script>
+</body>
+</html>
